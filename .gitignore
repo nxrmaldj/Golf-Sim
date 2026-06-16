@@ -1,0 +1,33 @@
+# Unreal Engine — folders Git should NOT track (auto-generated / huge / personal)
+
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+
+# Visual Studio
+.vs/
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcodeproj
+*.xcworkspace
+
+# Compiled / generated
+*.obj
+*.pdb
+*.dll
+*.exe
+*.lib
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE (optional — some teams commit .vscode)
+.idea/
