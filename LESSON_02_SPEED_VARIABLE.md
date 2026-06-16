@@ -93,3 +93,40 @@ git add .
 git commit -m "feat: lesson 2 speed variable and delta seconds"
 git push
 ```
+What is Delta Seconds?
+Delta Seconds = how much time passed since the last frame.
+
+Not since the game started. Not since you pressed Play. Just since the previous tick.
+
+Monitor speed	Frames per second	Delta Seconds (roughly)
+Slow
+~30 FPS
+~0.033 seconds per frame
+Medium
+~60 FPS
+~0.016 seconds per frame
+Fast
+~120 FPS
+~0.008 seconds per frame
+Plain English: It’s a tiny slice of time — “how long was the last frame?”
+
+Why multiply?
+You want Speed to mean: units per second (like miles per hour).
+
+Formula:
+
+distance this frame = Speed × Delta Seconds
+Example: Speed = 200 units per second.
+
+FPS	Delta Seconds	Distance this frame
+30
+0.033
+200 × 0.033 ≈ 6.6
+60
+0.016
+200 × 0.016 ≈ 3.2
+120
+0.008
+200 × 0.008 ≈ 1.6
+More frames per second → smaller steps, but more steps per second.
+Those cancel out → ~200 units per second on every PC.

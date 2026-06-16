@@ -61,11 +61,41 @@ Add Actor World Offset
 
 ## Part E — Build Steps (When Ready)
 
-1. Select **Static Mesh** on `BP_MovingBall` → Details → **Collision** → preset **BlockAll**.
-2. Place **Cube** or **Plane** as floor/wall in level; confirm they block.
-3. Enable **Sweep** on **Add Actor World Offset**.
-4. On hit: **Set bIsMoving** false (stop for now).
-5. Play: launch ball into wall — it should stop, not tunnel through.
+1. **Make the sphere the Root component** (see Troubleshooting below — critical).
+2. Select **Static Mesh** on `BP_MovingBall` → Details → **Collision** → preset **BlockAllDynamic** (ball is moving).
+3. Set ball **Mobility** → **Movable**. Cubes/floor stay **Static** + **BlockAll**.
+4. Place **Cube** as floor/wall in level; **Simulate Physics OFF** on cubes.
+5. Enable **Sweep** on **Add Actor World Offset**.
+6. **Sweep Hit Result** → **Break Hit Result** → **Blocking Hit** → Branch → **Set bIsMoving** false.
+7. Play: launch ball into wall — it should stop, not tunnel through.
+
+---
+
+## Troubleshooting — "Sweep never hits / Blocking Hit always false"
+
+### Root component (most common)
+
+New Blueprint Actors start with an empty **Scene Component** as **Root** — no collision.
+
+If your **sphere mesh is a child** (not Root), sweep and hit detection often **fail** even when wireframes look correct.
+
+**Fix:**
+
+1. Open `BP_MovingBall` → **Components** panel.
+2. Right-click **Static Mesh** (sphere) → **Set as Root Component**.
+3. **Compile** + **Save**.
+4. Delete old ball in level → drag in a fresh copy.
+
+**Plain English:** The ball mesh must be the "main handle" of the Actor — not a child hanging off an invisible root.
+
+### Other checks
+
+| Problem | Fix |
+|---------|-----|
+| Cubes fly away | **Simulate Physics OFF** on cubes and ball |
+| Ball is WorldStatic | Ball → **Movable** + **BlockAllDynamic** |
+| No red Return Value pin (UE 5.7) | Use **Break Hit Result** → **Blocking Hit** |
+| Still fails | **Line Trace by Channel** before move (see chat / ask in Lesson 4) |
 
 ---
 
