@@ -2,28 +2,87 @@
 
 ## What this project is
 
-This is a golf simulation game called Golfsim.
+This is a golf simulation game called **GolfSim**.
 The player swings a real golf club outdoors, a physical launch monitor captures
 the shot data, and the game simulates where the ball would have gone on a
 fantasy virtual golf course displayed on screen.
 
+---
+
+## New decisions (project strategy)
+
+### Platform strategy
+- **PC (Windows) first**, iPad second
+- PC is where the serious sim community lives, best tooling, most control
+- iPad version comes after PC is proven — E6's iPad success shows demand exists there
+- No mobile-first development
+
+### Game direction — creative courses over licensed real ones
+- Primary content = **original creative courses** (no licensing fees, full creative control)
+- First course = **desert oasis theme** (already in plan)
+- Future themes: tropical, mountain, sci-fi, etc.
+- Inspired by TGL (Tomorrow Golf League) which proved fantasy/original course design works at the highest level of the sport and attracts younger audiences
+
+### Course creator tool (major new feature)
+- Players will be able to **build and share their own courses** inside the game
+- This is a core differentiator — no other launch monitor sim has an in-game course creator aimed at casual users
+- GSPro has community tools but they require external software, lidar files, and technical knowledge — our version should be in-game and approachable
+- PGA Tour 2K's course creator community proves UGC golf courses have massive demand
+- The course creator = the moat. People won't leave because their courses are there.
+
+### Real course replication — "soft replica" approach
+- We are NOT licensing real courses (too expensive, legally complex)
+- Instead: a tool where users can **generate a soft replica** of a real course using public data
+- Data sources to use:
+  - **OpenStreetMap (OSM)** — free, open license, has golf-specific tags (fairway, green, bunker, tee, water hazard). Already used by TGC Designer Tools community to recreate courses in PGA 2K
+  - **USGS public lidar data** — US government elevation data, free, public domain, ~1 meter resolution. Same data the GSPro community uses
+- **Do NOT use Google Maps** — their ToS explicitly prohibits tracing or building terrain models from their satellite imagery or elevation API
+- This feature is v2, not v1 launch — build original courses first
+
+### Competitor landscape (for Cursor context)
+- **GSPro** — most popular serious sim software, Windows-only, 2000+ community lidar courses, no in-game creator, no iPad
+- **E6 Connect / E6 Apex** — polished, cross-platform including iPad, $300-600/yr subscription, 90+ licensed courses
+- **TruGolf** — publicly traded (NASDAQ: TRUG), ~$19-22M annual revenue, not profitable, owns E6
+- **Awesome Golf** — UK indie, cross-platform (iOS/Android/Windows/Mac), $14.95/month, fun/casual focused, not realistic
+- **Creative Golf** — has a free standalone course editor, 200+ courses, mainly European market
+- **TGC 2019** — discontinued but massive 150,000+ community course library via Steam, used OSM + lidar
+
+### Target audience insight (from research)
+- 51% of simulator users are non-traditional golfers (never play on a real course)
+- Serious golfers want realistic licensed courses + practice data
+- Casual/entertainment users want game modes, creative environments, fun
+- The growing market = non-traditional golfers and younger audiences who want entertainment
+- This is who the original creative course approach targets
+
+---
+
 ## The hardware
 
-* **Launch monitor:** FlightScope Mevo+ (connects over WiFi to the Windows laptop)
-* **Platform:** Windows PC / laptop
-* **Data format:** The Mevo+ sends shot data via a community connector app using
-the GSPro Open API format — a JSON payload delivered over a local TCP socket
-on port 921. Shot data includes: ball speed, launch angle, vertical launch
-angle, horizontal launch angle, total spin, spin axis, and carry distance.
+- **Launch monitor:** FlightScope Mevo+ and Mevo Gen2 (developer owns Mevo+) — connects over WiFi to the Windows laptop
+- **Platform:** Windows PC / laptop (primary); iPad later
+- **Data format:** The Mevo+ sends shot data via a community connector app using the **GSPro Open API** format — a JSON payload delivered over a local TCP socket on port 921. Shot data includes: ball speed, launch angle, vertical launch angle, horizontal launch angle, total spin, spin axis, and carry distance.
+- **Future:** expand to other launch monitors that support GSPro Open API
+- Awesome Golf also confirmed Mevo+ compatible for reference
+
+---
 
 ## The game engine
 
-**Unreal Engine 5 on Windows.**
+**Unreal Engine 5.7 on Windows.**
 
 The developer already knows UE5 from cinematic and animation production work.
 They understand the editor interface, Landscape tools, Level Sequences, and
 working with assets. What they do NOT yet know is how to write code or build
 game logic.
+
+**Tech stack:**
+- Unreal Engine 5.7 (stable, good tutorial support)
+- Blueprints-first (avoid C++ unless necessary)
+- Cursor IDE with AI assistance for learning
+- Windows PC development and deployment
+- GSPro Open API for launch monitor data
+
+---
 
 ## Primary scripting approach — BLUEPRINTS FIRST
 
@@ -37,6 +96,8 @@ the same logic as C++ in a visual format that is easier to learn and debug.
 When showing Blueprint logic, describe it as clearly as possible — name the
 nodes, describe how they connect, and explain what each part does.
 
+---
+
 ## The developer's coding experience
 
 **Complete beginner. No prior coding experience.**
@@ -46,15 +107,17 @@ work from a content/art perspective — but have never written code before.
 
 **How to communicate with this developer:**
 
-* Always explain what something does before showing how to build it
-* Never use a technical term without immediately defining it in plain English
-* Explain WHY a thing is built a certain way, not just HOW
-* Break everything into the smallest possible steps
-* After showing any code or Blueprint logic, summarise what it does in one or
-two plain English sentences
-* Never assume prior knowledge of programming concepts
-* When there are multiple ways to do something, explain the tradeoffs simply
-rather than just picking one without explanation
+- Always explain what something does before showing how to build it
+- Never use a technical term without immediately defining it in plain English
+- Explain WHY a thing is built a certain way, not just HOW
+- Break everything into the smallest possible steps
+- After showing any code or Blueprint logic, summarise what it does in one or
+  two plain English sentences
+- Never assume prior knowledge of programming concepts
+- When there are multiple ways to do something, explain the tradeoffs simply
+  rather than just picking one without explanation
+
+---
 
 ## The game vision
 
@@ -64,98 +127,100 @@ on oasis water areas to avoid sand hazards. Courses should feel like real golf
 in terms of shot mechanics but exist in imaginative environments.
 
 **Game modes to build (in order):**
-
 1. Single player — one person plays a full hole / round
 2. Local multiplayer — turn-based, up to 2 players on the same machine
 
-**NOT building:** online multiplayer, real licensed courses, VR support.
+**What we are NOT building (scope boundaries):**
+- No licensed real course replicas at launch
+- No iOS/Android mobile version initially
+- No C++ — Blueprints only until proven necessary
+- Not trying to compete with GSPro on realism and lidar accuracy
+- Not building a venue/commercial simulator business tool
+- No online multiplayer, VR support at launch
+
+---
 
 ## The project roadmap (current phase)
 
-### Phase 1 — Setup \& foundations (Weeks 1–2) ← START HERE
-
-* Install Visual Studio Community 2022
-* Set up Git for version control
-* Learn UE5 Blueprint basics: variables, events, functions
-* Goal: get a sphere moving on screen from Blueprint logic
+### Phase 1 — Setup & foundations (Weeks 1–2) ← IN PROGRESS
+- Install Visual Studio Community 2022 (needed later for C++/packaging; Blueprint work ongoing)
+- Set up Git for version control ✓
+- Learn UE5 Blueprint basics: variables, events, functions ✓ (Lessons 1–4 complete)
+- Goal: get a sphere moving on screen from Blueprint logic ✓
 
 ### Phase 2 — Ball flight physics (Weeks 3–6)
-
-* UE5 Projectile Movement Component
-* Ball arc using hardcoded speed, angle, spin
-* Terrain collision and ball roll-out
-* Trajectory tracer line in 3D
+- UE5 Projectile Movement Component
+- Ball arc using hardcoded speed, angle, spin
+- Terrain collision and ball roll-out
+- Trajectory tracer line in 3D
 
 ### Phase 3 — Mevo+ connection (Weeks 7–10)
-
-* Community Mevo+ connector app on Windows
-* TCP socket listener in UE5 (free plugin from Fab)
-* Parse live JSON shot data into ball physics
+- Community Mevo+ connector app on Windows
+- TCP socket listener in UE5 (free plugin from Fab)
+- Parse live JSON shot data into ball physics
 
 ### Phase 4 — First course: desert oasis (Weeks 11–20)
+- Landscape build using UE5 Landscape tools
+- Desert environment assets from Fab marketplace
+- Hazard detection: sand / oasis / fairway
+- Flagstick, hole collision, hole complete event
 
-* Landscape build using UE5 Landscape tools
-* Desert environment assets from Fab marketplace
-* Hazard detection: sand / oasis / fairway
-* Flagstick, hole collision, hole complete event
+### Phase 5 — Game loop & multiplayer (Weeks 21–30)
+- Stroke counter and par system
+- Scorecard HUD
+- Turn-based local multiplayer
+- Main menu and course select
 
-### Phase 5 — Game loop \& multiplayer (Weeks 21–30)
+### Phase 6 — Polish & release (Weeks 31+)
+- Sound design
+- Shot data overlay (Mevo+ stats per shot)
+- FlightScope partner program application
+- Package for Windows, release on itch.io
 
-* Stroke counter and par system
-* Scorecard HUD
-* Turn-based local multiplayer
-* Main menu and course select
+### Future (v2+) — not launch scope
+- In-game course creator & sharing
+- Soft replica tool (OSM + USGS lidar — NOT Google Maps)
+- iPad port
 
-### Phase 6 — Polish \& release (Weeks 31+)
-
-* Sound design
-* Shot data overlay (Mevo+ stats per shot)
-* FlightScope partner program application
-* Package for Windows, release on itch.io
+---
 
 ## Budget
 
 $0–$200 total. Free tools wherever possible. Paid assets from Fab marketplace
-for environment art only (\~$50–100). No paid plugins unless essential and
+for environment art only (~$50–100). No paid plugins unless essential and
 no free alternative exists.
+
+---
 
 ## How Cursor should behave in this project
 
 1. **Explain before building.** When asked to implement something, explain the
-concept and approach first. Only write Blueprint logic or code after the
-developer understands what they're about to build.
+   concept and approach first. Only write Blueprint logic or code after the
+   developer understands what they're about to build.
 2. **Small steps.** Break every task into the smallest meaningful unit. Never
-build a whole system in one response — build one piece, check understanding,
-then continue.
+   build a whole system in one response — build one piece, check understanding,
+   then continue.
 3. **Comment everything.** Any Blueprint logic or code shown should include
-comments on every meaningful section explaining what it does and why.
+   comments on every meaningful section explaining what it does and why.
 4. **Plain English summaries.** After every technical explanation, add a
-one or two sentence plain English summary of what was just built and why.
+   one or two sentence plain English summary of what was just built and why.
 5. **No assumed knowledge.** If you use a term the developer might not know
-(variable, function, node, reference, component, etc.) define it in
-plain language the first time it appears.
+   (variable, function, node, reference, component, etc.) define it in
+   plain language the first time it appears.
 6. **Blueprints over C++.** Default to Blueprint solutions. Only suggest C++
-if it is genuinely the only viable option, and explain why.
+   if it is genuinely the only viable option, and explain why.
 7. **Encourage understanding.** If the developer seems to be copying without
-understanding, prompt them to explain back what the code does in their own
-words before moving forward.
+   understanding, prompt them to explain back what the code does in their own
+   words before moving forward.
 
-## File structure notes (fill these in as the project grows)
+---
 
-* UE5 project name: \[TO BE FILLED IN]
-* Main game Blueprint: \[TO BE FILLED IN]
-* Ball Blueprint: \[TO BE FILLED IN]
-* Course level file: \[TO BE FILLED IN]
+## File structure notes
 
-\---
-
-**HOW TO USE THIS FILE**
-
-Save this file as `.cursorrules` (no other filename, no extension after it)
-in the root folder of your Unreal Engine project. Cursor will automatically
-read it every time you open that project folder. You will not need to
-re-explain your project at the start of each session.
-
-You can also paste the contents of this file directly into Cursor's chat
-window at the start of any session if you want to remind it of the full context.
-
+- UE5 project name: GolfSim
+- Ball Blueprint: BP_MovingBall (`Content/Blueprints/`)
+- Learning map: Learning_Map (`Content/Maps/Learning/`)
+- Lesson docs: LESSON_01 through LESSON_10, LESSONS_INDEX.md (project root)
+- GitHub repo: nxrmaldj/Golf-Sim
+- Main game Blueprint: [TO BE FILLED IN]
+- Course level file: [TO BE FILLED IN]
