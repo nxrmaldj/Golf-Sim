@@ -2,166 +2,154 @@
 
 **Project:** GolfSim  
 **Phase:** 1 — Setup & foundations  
+**Prerequisite:** None  
 **Goal:** A ball-shaped object slides across the screen when you press Play.
 
-**Plain English:** You are teaching the game one simple rule: *"Every moment, move this object a little bit forward."*
+**Plain English:** You teach the game one rule: *"Every frame, move this object a little bit forward."*
 
 ---
 
-## Part A — What You Are Building (Big Picture)
+## Part A — What You Are Building (Overview)
 
-You will create three things:
+By the end of this lesson you will have:
 
-1. **A Blueprint Actor** — a reusable "thing" in your game (like a prefab).
-2. **A visible sphere** — so you can see it move.
-3. **A tiny bit of logic** — instructions that run when the game starts and every frame after.
+1. **`BP_MovingBall`** — a Blueprint Actor (reusable ball object).
+2. A **visible sphere** mesh on it.
+3. **Event Tick** logic that moves the ball every frame.
 
-You will **not** write C++. Everything happens in Unreal's **Blueprint** editor (boxes and wires).
+**End result:** Press Play → sphere slides smoothly across the level.
 
 ---
 
-## Part B — New Words (Read Once)
+## Part B — New Words
 
 | Word | Simple meaning |
 |------|----------------|
 | **Actor** | Any "thing" in the level (ball, light, camera). |
-| **Blueprint** | A saved set of instructions + parts for an Actor. |
-| **Component** | A part glued onto an Actor (mesh, physics, etc.). |
-| **Event Graph** | The screen where you connect logic with wires. |
-| **Event** | "When this happens…" (e.g. when the game starts). |
+| **Blueprint** | Saved instructions + parts for an Actor. |
+| **Component** | A part on an Actor (mesh, collision, etc.). |
+| **Event Graph** | Where you connect logic with wires. |
+| **Event** | "When this happens…" (game start, every frame, etc.). |
 | **Node** | One step in the logic (a box on the graph). |
-| **Compile** | Unreal checks your Blueprint and saves the logic. |
+| **Compile** | Unreal checks and saves your Blueprint logic. |
 
 ---
 
-## Part C — The Plan (3 Pieces)
+## Part C — Two Wire Types (Read Once — Used in Every Lesson)
 
-### Piece 1 — The Object (`BP_MovingBall`)
+| Wire color | Name | What it does |
+|------------|------|----------------|
+| **White arrow** | *Execution* | Order nodes run in (left → right). |
+| **Colored pins** | *Data* | Numbers, vectors, true/false passed into nodes. |
 
-- You make a Blueprint based on **Actor** (generic object).
-- You add a **Static Mesh** component and set it to a **sphere** shape.
-- You drag one into the level so it exists when you hit Play.
-
-**Think of it as:** an empty puppet + a sphere "skin."
-
-### Piece 2 — When Does Logic Run?
-
-Two events matter here:
-
-| Event | When it fires |
-|-------|----------------|
-| **Event BeginPlay** | Once, right when the game starts |
-| **Event Tick** | Over and over, every frame (~60× per second) |
-
-For movement we use **Event Tick**: *"Every frame, nudge forward a little."*
-
-If we only used BeginPlay, we would move once and stop.
-
-### Piece 3 — How Movement Works (The Math, Simply)
-
-Your ball has a **position** in 3D space:
-
-- **X** — left / right
-- **Y** — forward / back
-- **Z** — up / down
-
-Each frame we say:
-
-> New position = old position + (direction × speed × tiny time slice)
-
-In Blueprint you will use a node called **Add Actor World Offset**:
-
-- **Delta Location** — how far to move this frame (e.g. "2 units forward on X").
-- **Sweep** — leave off for now (we are not checking collisions yet).
-
-**Why "tiny time slice"?**  
-Screens run at different speeds. **Delta Seconds** = time since the last frame. Multiplying speed × Delta Seconds keeps motion smooth on fast and slow PCs.
-
-**Simple version for Lesson 1:**  
-Move **2 units on X every frame** — easy to see; we can add Delta Seconds in a later lesson.
+**Plain English:** White = "go do this next." Colored = "here is the number/vector to use."
 
 ---
 
-## Part D — The Blueprint Logic (What You Will Wire)
+## Part D — Build Section 1: Create the Blueprint
 
-Picture this chain in the **Event Graph**:
+### What we're building now
+The ball Actor itself — before any movement logic.
 
-```
-Event Tick
-    ↓
-Make Vector  (X = 2,  Y = 0,  Z = 0)     ← "move this much this frame"
-    ↓
-Add Actor World Offset
-    - Delta Location = that vector
-    - Sweep = unchecked (false)
-```
+#### Step 1 — Create `BP_MovingBall`
 
-**What each part does:**
+> 1. Open **GolfSim** in Unreal Editor.
+> 2. **Content Browser** → **Add (+)** → **Blueprint Class** → **Actor**.
+> 3. Name it **`BP_MovingBall`**.
+>
+> **What this does:** Creates an empty Actor template you can place in the level.
+>
+> **Why Actor:** Generic object — perfect for a ball with no character movement.
 
-1. **Event Tick** — "Go!" every frame.
-2. **Make Vector** — a direction + distance (X/Y/Z). `(2, 0, 0)` = slide along X.
-3. **Add Actor World Offset** — actually moves the Actor in the world.
+#### Step 2 — Add the sphere mesh
 
-**Plain English:** Every frame, slide the ball 2 steps to the right. It looks like smooth motion because frames happen very fast.
+> 1. Double-click **`BP_MovingBall`**.
+> 2. **Add Component** → **Static Mesh**.
+> 3. Select the Static Mesh component → **Details** → **Static Mesh** → **Shape_Sphere**.
+> 4. **Compile** + **Save**.
+>
+> **What Static Mesh does:** Gives the Actor a visible 3D shape.
+>
+> **Why a sphere:** Stand-in golf ball until you swap art later.
 
----
+#### Step 3 — Place in level
 
-## Part E — Build Steps (Do These in the Editor)
-
-When you are ready, work through these in order:
-
-### Step 1 — Create the Blueprint
-
-1. Open **GolfSim** in Unreal Editor.
-2. In the **Content Browser**, click **Add (+)** → **Blueprint Class**.
-3. Choose **Actor** as the parent class.
-4. Name it `BP_MovingBall`.
-
-### Step 2 — Add the Sphere Mesh
-
-1. Double-click `BP_MovingBall` to open it.
-2. Click **Add Component** → **Static Mesh**.
-3. Select the new Static Mesh component.
-4. In **Details**, set **Static Mesh** to **Shape_Sphere**.
-5. Click **Compile**, then **Save**.
-
-### Step 3 — Add Movement Logic
-
-1. Open the **Event Graph** tab.
-2. Right-click → search **Event Tick** → add it.
-3. Right-click → search **Make Vector** → set **X = 2**, **Y = 0**, **Z = 0**.
-4. Right-click → search **Add Actor World Offset** → add it.
-5. Connect:
-   - **Event Tick** white execution pin → **Add Actor World Offset** white execution pin
-   - **Make Vector** yellow output → **Add Actor World Offset** → **Delta Location**
-6. Uncheck **Sweep** on **Add Actor World Offset**.
-7. Click **Compile**, then **Save**.
-
-### Step 4 — Test in the Level
-
-1. Drag `BP_MovingBall` from the Content Browser into the level.
-2. Press **Play**.
-3. The sphere should slide across your view.
+> 1. Drag **`BP_MovingBall`** from Content Browser into **Learning_Map**.
+> 2. **Save** the level.
+>
+> **Test so far:** Ball visible in editor — not moving yet.
 
 ---
 
-## Part F — Quick Check (Before or After Building)
+## Part E — Build Section 2: Movement Logic
 
-Answer in your own words:
+### What we're building now
+Every frame, slide the ball forward on the **X** axis.
+
+#### Step 1 — Add Event Tick
+
+> 1. Open **Event Graph**.
+> 2. Right-click → search **Event Tick** → add it.
+>
+> **What Event Tick does:** Fires every frame (~60× per second) while the game runs.
+>
+> **Why not BeginPlay alone:** BeginPlay runs once — ball would move once and stop.
+
+#### Step 2 — Add Make Vector (data node)
+
+> 1. Right-click → search **Make Vector**.
+> 2. Set **X = 2**, **Y = 0**, **Z = 0**.
+>
+> **What Make Vector does:** Builds a direction + distance (2 units on X this frame).
+>
+> **Why X:** Simple left/right slide for Lesson 1. Lesson 2 adds a Speed variable.
+
+#### Step 3 — Add Add Actor World Offset (execution + data)
+
+> 1. Right-click → search **Add Actor World Offset** → add it.
+> 2. **White wire:** **Event Tick** → **Add Actor World Offset**.
+> 3. **Colored wire:** **Make Vector** output → **Delta Location** pin.
+> 4. **Sweep** = unchecked (no collision yet — Lesson 4).
+>
+> **What the white wire does:** "Every frame, run the move node."
+>
+> **What the colored wire does:** Tells the move node *how far* to move.
+>
+> **Full picture:**
+> ```
+> Event Tick ──white──→ Add Actor World Offset
+>                            ↑ colored
+>                       Make Vector (2, 0, 0)
+> ```
+
+#### Step 4 — Compile + Save
+
+> Click **Compile** + **Save**.
+
+---
+
+### Plain English summary
+Every frame: Event Tick runs → move node shifts the ball 2 units on X → looks like smooth sliding.
+
+### Test
+
+1. **Play** → sphere slides across the view.
+2. **Stop** → if nothing moves, check white wire from Event Tick to Add Actor World Offset.
+
+---
+
+## Part F — Quick Check
 
 1. What is a **Blueprint** in one sentence?
-2. Why do we use **Event Tick** instead of only **BeginPlay** for movement?
-3. What does **Add Actor World Offset** do?
+2. Why **Event Tick** instead of only **BeginPlay**?
+3. What is the difference between a **white** wire and a **colored** wire?
 
 ---
 
-## Part G — Save Your Work to GitHub
-
-After you finish and test in Unreal:
+## Part G — Git
 
 ```powershell
-cd "A:\Unreal Projects\GolfSim"
-git status
+cd "C:\Users\Darre\Documents\Unreal Projects\GolfSim"
 git add .
 git commit -m "feat: add BP_MovingBall lesson 1"
 git push
@@ -169,12 +157,7 @@ git push
 
 ---
 
-## What Comes Next (Lesson 2 — not started yet)
+## What Comes Next (Lesson 2)
 
-- Use **Delta Seconds** so speed is frame-rate independent
-- Change direction or speed with a **variable**
-- Replace the sphere with a golf ball mesh
-
----
-
-*Last updated: Lesson 1 intro — explain before build.*
+- **Speed** variable instead of hardcoded `2`
+- **Delta Seconds** so speed is the same on every monitor

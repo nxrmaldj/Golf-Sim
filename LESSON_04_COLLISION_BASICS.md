@@ -1,19 +1,22 @@
 # Lesson 4: Turn On Collisions
 
 **Project:** GolfSim  
-**Prerequisite:** Lesson 3  
-**Goal:** Ball stops or reacts when it hits walls, floor, or obstacles — not passing through them.
+**Prerequisite:** Lesson 3 (`bIsMoving`, launch on Space, movement on Branch True)  
+**Goal:** Ball stops when it hits walls or floor — no passing through.
 
-**Plain English:** Give the ball a "solid body" so the world can push back.
+**Plain English:** Give the ball a solid body so the world pushes back.
 
 ---
 
-## Part A — What You Are Building
+## Part A — What You Are Building (Overview)
 
-1. **Collision enabled** on the ball mesh.
-2. **Sweep** turned **on** when moving (line trace along movement).
-3. A simple **floor + wall** in the level to test hits.
-4. **Stop on hit** (simple version before bounce in Lesson 5).
+By the end of this lesson you will have:
+
+1. **Collision** enabled on ball and floor/walls.
+2. **Sweep** on during movement.
+3. **Stop on hit** — `bIsMoving = false` when sweep detects a blocking hit.
+
+**End result:** Launch ball into wall → it stops. Lesson 5 replaces stop with bounce.
 
 ---
 
@@ -21,94 +24,144 @@
 
 | Word | Simple meaning |
 |------|----------------|
-| **Collision** | Two objects can't occupy the same space. |
-| **Sweep** | "Check along the path while moving" — catches hits between frames. |
+| **Collision** | Two solid objects can't share the same space. |
+| **Sweep** | Check along the movement path each frame — catches hits between frames. |
 | **Block** | Objects physically stop each other. |
-| **Overlap** | Objects detect touch but may pass through (used for triggers). |
-| **Hit Result** | Info about what you bumped (location, surface, actor). |
+| **Hit Result** | Data package about a hit (location, normal, what was hit). |
+| **Root Component** | Main component of the Actor — movement and sweep use this. |
 
 ---
 
-## Part C — Two Places Collisions Live
+## Part C — Blueprint Wires (Quick Reminder)
 
-### On the ball (Static Mesh component)
-
-- **Collision Presets:** e.g. **BlockAll** or **PhysicsActor**
-- **Generate Hit Events** (if you need OnComponentHit later)
-
-### On level geometry
-
-- Floor/wall meshes need collision too (most primitives have it by default).
+- **Sweep** is a **checkbox** on Add Actor World Offset — not a separate white chain.
+- **Return Value** / **Sweep Hit Result** = **colored data** (did we hit something?).
+- **Break Hit Result** → **Blocking Hit** → **Branch Condition** = colored bool into Branch.
 
 ---
 
-## Part D — The Logic (Preview) — Stop on sweep hit
+## Part D — Build Section 1: Collision on Ball and Level
 
-```
-Event Tick → Branch (bIsMoving)
-    ↓
-Add Actor World Offset
-    - Delta Location = movement vector
-    - Sweep = TRUE   ← important
-    - Return Value (hit?) → Branch
-         ├─ Hit → Set bIsMoving = false (stop)
-         └─ No hit → continue next frame
-```
+### What we're building now
+Make ball and floor/walls solid before wiring stop logic.
 
-**Note:** Exact pins vary slightly by UE version; search **Add Actor World Offset** and use the **Sweep** checkbox and **Return Value** (boolean hit).
+#### Step 1 — Make sphere the Root (critical)
+
+> 1. **`BP_MovingBall`** → **Components**.
+> 2. Right-click **Static Mesh** (sphere) → **Set as Root Component**.
+> 3. **Compile** + **Save**.
+> 4. Delete old ball in level → drag in fresh copy.
+>
+> **What Root does:** Sweep and collision use the root transform. Child mesh = hits often fail.
+>
+> **Why first:** Fix this before debugging sweep — saves hours.
+
+#### Step 2 — Ball collision settings
+
+> Select **Static Mesh** → **Details**:
+> - **Collision Presets** → **BlockAllDynamic**
+> - **Mobility** → **Movable**
+> - **Simulate Physics** → **OFF**
+>
+> **Why Movable:** Static objects don't sweep-move correctly.
+
+#### Step 3 — Floor and walls in level
+
+> 1. Place **Cube** meshes as floor/wall.
+> 2. **Mobility** → **Static**, **Collision** → **BlockAll**.
+> 3. **Simulate Physics** → **OFF** on cubes and ball.
+>
+> **Test:** Play with movement — ball should not fall through floor (may not stop yet if sweep off).
 
 ---
 
-## Part E — Build Steps (When Ready)
+## Part E — Build Section 2: Enable Sweep
 
-1. **Make the sphere the Root component** (see Troubleshooting below — critical).
-2. Select **Static Mesh** on `BP_MovingBall` → Details → **Collision** → preset **BlockAllDynamic** (ball is moving).
-3. Set ball **Mobility** → **Movable**. Cubes/floor stay **Static** + **BlockAll**.
-4. Place **Cube** as floor/wall in level; **Simulate Physics OFF** on cubes.
-5. Enable **Sweep** on **Add Actor World Offset**.
-6. **Sweep Hit Result** → **Break Hit Result** → **Blocking Hit** → Branch → **Set bIsMoving** false.
-7. Play: launch ball into wall — it should stop, not tunnel through.
+#### Step 1 — Turn on Sweep
+
+> 1. **Event Graph** → **Add Actor World Offset** (on Branch True path).
+> 2. Check **Sweep** = ✓.
+>
+> **What Sweep does:** Line-check from old position to new position each move.
+>
+> **Why:** Without sweep, ball can tunnel through thin walls between frames.
 
 ---
 
-## Troubleshooting — "Sweep never hits / Blocking Hit always false"
+## Part F — Build Section 3: Stop on Hit
 
-### Root component (most common)
+### What we're building now
+If sweep hits something solid, stop the ball.
 
-New Blueprint Actors start with an empty **Scene Component** as **Root** — no collision.
+#### Step 1 — Get hit data from sweep
 
-If your **sphere mesh is a child** (not Root), sweep and hit detection often **fail** even when wireframes look correct.
+> 1. From **Add Actor World Offset**, drag **Sweep Hit Result** pin (colored struct).
+> 2. Add **Break Hit Result**.
+> 3. Drag **Blocking Hit** (bool) → new **Branch** **Condition** pin.
+>
+> **What Break Hit Result does:** Pulls useful pieces out of the hit package.
+>
+> **What Blocking Hit means:** True = solid wall/floor, not just overlap trigger.
 
-**Fix:**
+#### Step 2 — Stop on blocking hit
 
-1. Open `BP_MovingBall` → **Components** panel.
-2. Right-click **Static Mesh** (sphere) → **Set as Root Component**.
-3. **Compile** + **Save**.
-4. Delete old ball in level → drag in a fresh copy.
+> 1. **White:** from **Add Actor World Offset** execution out → **Branch (Blocking Hit?)**
+> 2. **True** path → **Set bIsMoving** = **false**.
+> 3. **False** path → leave empty (keep moving next frame).
+>
+> **What Set bIsMoving false does:** Stops Event Tick movement — ball freezes.
+>
+> **Why after move node:** Check hit result from *this frame's* move attempt.
+>
+> ```
+> Branch (bIsMoving) True → Add Actor World Offset (Sweep on)
+>                               ↓ white
+>                          Branch (Blocking Hit?)
+>                               ├─ True → Set bIsMoving false
+>                               └─ False → (continue)
+> ```
 
-**Plain English:** The ball mesh must be the "main handle" of the Actor — not a child hanging off an invisible root.
+#### Step 3 — Compile + Save
 
-### Other checks
+> Click **Compile** + **Save**.
+
+---
+
+### Plain English summary
+Move with sweep → if solid hit → stop. Lesson 5 swaps stop for bounce.
+
+### Test
+
+1. **Play** → launch at wall.
+2. Ball should **stop** on contact, not pass through.
+3. If it never stops, see Troubleshooting below.
+
+---
+
+## Part G — Troubleshooting
 
 | Problem | Fix |
 |---------|-----|
-| Cubes fly away | **Simulate Physics OFF** on cubes and ball |
-| Ball is WorldStatic | Ball → **Movable** + **BlockAllDynamic** |
-| No red Return Value pin (UE 5.7) | Use **Break Hit Result** → **Blocking Hit** |
-| Still fails | **Line Trace by Channel** before move (see chat / ask in Lesson 4) |
+| Sweep never hits / Blocking Hit always false | Sphere must be **Root** (Step D1). Re-place ball in level. |
+| Cubes fly away | **Simulate Physics OFF** everywhere. |
+| Ball is WorldStatic | Ball → **Movable** + **BlockAllDynamic**. |
+| No Sweep Hit Result pin (UE 5.7) | Use **Return Value** bool or Break Hit Result from sweep output. |
+| Still fails | Ask in chat — may need line trace fallback. |
 
 ---
 
-## Part F — Quick Check
+## Part H — Quick Check
 
-1. What does **Sweep** do that non-sweep movement misses?
-2. What's the difference between **Block** and **Overlap**?
+1. What does **Sweep** catch that non-sweep misses?
+2. **Block** vs **Overlap** — which stops the ball?
+3. Why must the mesh be **Root**?
 
 ---
 
-## Part G — Git
+## Part I — Git
 
 ```powershell
+cd "C:\Users\Darre\Documents\Unreal Projects\GolfSim"
 git add .
 git commit -m "feat: lesson 4 collision and sweep stop on hit"
 git push

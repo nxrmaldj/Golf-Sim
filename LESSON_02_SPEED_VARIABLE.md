@@ -1,22 +1,22 @@
 # Lesson 2: Speed Variable + Delta Seconds
 
 **Project:** GolfSim  
-**Prerequisite:** Lesson 1 complete (`BP_MovingBall` moves on Event Tick)  
-**Goal:** Control speed from one place, and move the same speed on every PC.
+**Prerequisite:** Lesson 1 (`BP_MovingBall` moves on Event Tick)  
+**Goal:** Control speed from one dial, and move the same speed on every PC.
 
-**Plain English:** Replace the hardcoded `2` with a **Speed** dial, and use **Delta Seconds** so fast monitors don't make the ball zoom.
+**Plain English:** Replace hardcoded `2` with a **Speed** variable, and multiply by **Delta Seconds** so a 120 Hz monitor doesn't make the ball twice as fast.
 
 ---
 
-## Part A — What You Are Building
+## Part A — What You Are Building (Overview)
 
-You will add:
+By the end of this lesson you will have:
 
-1. A **float variable** called `Speed` (stores a number).
-2. **Delta Seconds** from Event Tick (tiny time slice per frame).
-3. **Multiply** Speed × Delta Seconds before moving.
+1. **`Speed`** float variable (default `200`).
+2. Movement = **Speed × Delta Seconds** each frame.
+3. Speed tweakable in the level **Details** panel (optional).
 
-Movement becomes: `distance this frame = Speed × Delta Seconds`
+**End result:** Same ball motion as Lesson 1, but speed means **units per second** — not "per frame."
 
 ---
 
@@ -24,109 +24,123 @@ Movement becomes: `distance this frame = Speed × Delta Seconds`
 
 | Word | Simple meaning |
 |------|----------------|
-| **Variable** | A named box that holds a value you can change. |
-| **Float** | A number with decimals (e.g. `200.0`). |
+| **Variable** | Named box that holds a value you can change. |
+| **Float** | Number with decimals (e.g. `200.0`). |
 | **Delta Seconds** | Time since last frame (~0.016 at 60 FPS). |
-| **Instance Editable** | Lets you change the value per ball in the level Details panel. |
+| **Get (variable)** | Data node that reads the variable's current value. |
+| **Instance Editable** | Change the value per ball in the level without opening the Blueprint. |
 
 ---
 
-## Part C — The Logic (Preview)
+## Part C — Blueprint Wires (Quick Reminder)
 
-```
-Event Tick
-    ↓
-Speed (get variable)  ×  Delta Seconds (from Event Tick pin)
-    ↓
-Make Vector (X = result, Y = 0, Z = 0)   ← or your chosen axis
-    ↓
-Add Actor World Offset
-```
-
-**Why multiply?**  
-Without Delta Seconds, "move 2 per frame" = faster on 120 FPS, slower on 30 FPS.  
-With it, **Speed = units per second** (much easier to reason about).
-
-**Suggested starting Speed:** `200` (units per second in UE — tune by eye).
+- **White** = execution order (Event Tick → move node).
+- **Colored** = data (Speed, Delta Seconds, vectors).
+- **Get Speed** is a **data** node — drag **`Speed`** from **My Blueprint**, don't pull it off the white wire.
 
 ---
 
-## Part D — Build Steps (When Ready)
+## Part D — Build Section 1: Create the Speed Variable
 
-### Step 1 — Create the variable
+### Variables to create
 
-1. Open `BP_MovingBall` → **Event Graph** or **My Blueprint** panel.
-2. Click **+ Variable** → name `Speed`, type **Float**.
-3. Default value: `200`.
-4. Eye icon **on** = Instance Editable (optional but nice for testing).
+| Name | Type | Default | Instance Editable? |
+|------|------|---------|-------------------|
+| `Speed` | **Float** | `200` | Optional ✓ (eye icon) |
 
-### Step 2 — Wire the graph
+#### Step 1 — Create `Speed`
 
-1. Keep **Event Tick**.
-2. Drag **Speed** into graph → **Get Speed**.
-3. From **Event Tick**, drag **Delta Seconds** pin.
-4. **Multiply** (float × float): Speed × Delta Seconds.
-5. Feed result into **Make Vector** X (Y=0, Z=0 if moving on X).
-6. **Add Actor World Offset** as in Lesson 1.
-7. **Compile** + **Save**.
+> 1. Open **`BP_MovingBall`** → **My Blueprint** → **+ Variable**.
+> 2. Name **`Speed`**, type **Float**, default **`200`**.
+> 3. Click **eye icon** if you want to tune speed in the level Details panel.
+>
+> **Why create it first:** **Get Speed** needs a variable to read from.
 
-### Step 3 — Test
+#### Step 2 — Compile + Save
 
-1. Play — ball should still move smoothly.
-2. Select the ball in the level → **Details** → change **Speed** — faster/slower without opening the Blueprint.
+> Click **Compile** + **Save**.
 
 ---
 
-## Part E — Quick Check
+## Part E — Build Section 2: Wire Speed × Delta Seconds
+
+### What we're building now
+Replace **Make Vector X = 2** with **Speed × Delta Seconds**.
+
+#### Step 1 — Add Get Speed (data node)
+
+> 1. From **My Blueprint**, drag **`Speed`** into the Event Graph.
+> 2. Choose **Get Speed**.
+>
+> **What Get Speed does:** Reads your Speed variable — data only, no white wire.
+
+#### Step 2 — Multiply by Delta Seconds
+
+> 1. Add **Multiply** (float × float).
+> 2. **Get Speed** → Multiply first pin.
+> 3. **Event Tick** → drag **Delta Seconds** pin (green, on the event) → Multiply second pin.
+>
+> **What Delta Seconds is:** "How long was the last frame?" — smaller on fast PCs, larger on slow PCs.
+>
+> **Why multiply:** `Speed` = units **per second**. × Delta Seconds = units **this frame**. All PCs end up near the same speed.
+
+#### Step 3 — Feed into movement
+
+> 1. **Make Vector** — **X** ← Multiply result, **Y** = 0, **Z** = 0.
+> 2. **White wire:** **Event Tick** → **Add Actor World Offset** (keep from Lesson 1).
+> 3. **Colored wire:** **Make Vector** → **Delta Location**.
+> 4. **Sweep** still off.
+>
+> ```
+> Event Tick ──white──→ Add Actor World Offset
+>     │                        ↑
+>     └── Delta Seconds ──→ Multiply ←── Get Speed
+>                              ↓
+>                         Make Vector → Delta Location
+> ```
+
+#### Step 4 — Compile + Save
+
+> Click **Compile** + **Save**.
+
+---
+
+### Plain English summary
+Speed is a dial in units per second. Delta Seconds scales it per frame so every monitor feels the same.
+
+### Test
+
+1. **Play** — ball still moves smoothly.
+2. Select ball in level → **Details** → change **Speed** — faster/slower without opening Blueprint.
+3. **Speed = 0** — ball should not move.
+
+---
+
+## Part F — Quick Check
 
 1. What does a **variable** save you from doing?
 2. Why multiply by **Delta Seconds**?
-3. If Speed = `0`, what happens?
+3. Where do you drag **Delta Seconds** from — Event Tick or Branch?
 
 ---
 
-## Part F — Git
+## Part G — Git
 
 ```powershell
-cd "A:\Unreal Projects\GolfSim"
+cd "C:\Users\Darre\Documents\Unreal Projects\GolfSim"
 git add .
 git commit -m "feat: lesson 2 speed variable and delta seconds"
 git push
 ```
-What is Delta Seconds?
-Delta Seconds = how much time passed since the last frame.
 
-Not since the game started. Not since you pressed Play. Just since the previous tick.
+---
 
-Monitor speed	Frames per second	Delta Seconds (roughly)
-Slow
-~30 FPS
-~0.033 seconds per frame
-Medium
-~60 FPS
-~0.016 seconds per frame
-Fast
-~120 FPS
-~0.008 seconds per frame
-Plain English: It’s a tiny slice of time — “how long was the last frame?”
+## Reference — Delta Seconds Table
 
-Why multiply?
-You want Speed to mean: units per second (like miles per hour).
+| Monitor | FPS (rough) | Delta Seconds (rough) |
+|---------|-------------|------------------------|
+| Slow | ~30 | ~0.033 |
+| Medium | ~60 | ~0.016 |
+| Fast | ~120 | ~0.008 |
 
-Formula:
-
-distance this frame = Speed × Delta Seconds
-Example: Speed = 200 units per second.
-
-FPS	Delta Seconds	Distance this frame
-30
-0.033
-200 × 0.033 ≈ 6.6
-60
-0.016
-200 × 0.016 ≈ 3.2
-120
-0.008
-200 × 0.008 ≈ 1.6
-More frames per second → smaller steps, but more steps per second.
-Those cancel out → ~200 units per second on every PC.
+At **Speed = 200**, each PC moves ~200 units per **second** — not per frame.
